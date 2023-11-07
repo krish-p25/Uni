@@ -5,10 +5,16 @@ const path = require('path')
 const fs = require('fs')
 const bodyParser = require('body-parser');
 const https = require('https');
-var options = {
-    key: fs.readFileSync('key.pem'),
-    cert: fs.readFileSync('cert.pem')
-}
+const cert = fs.readFileSync('./certs/certificate.crt');
+const ca = fs.readFileSync('./certs/ca_bundle.crt');
+const key = fs.readFileSync('./certs/private.key');
+
+let options = {
+    cert: cert,
+    ca: ca,
+    key: key
+};
+
 
 https.createServer(options, app).listen(443, () => {
     console.log(new Date().toLocaleString('en-GB', { timeZone: 'Europe/London' }), 'HTTPS Server running on port 443');
