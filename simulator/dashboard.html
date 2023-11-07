@@ -1,0 +1,254 @@
+<!DOCTYPE html><html>
+<html style="width: 100%;">
+<head>
+    <title>Driver Dashboard | UCL</title>
+    <link rel="icon" type="image/png" href="https://i.imgur.com/aEazsg9.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <link rel="stylesheet" type="text/css" href="dashboard.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css" />
+</head>
+<body>
+    <div class="banner">
+        <a href="">
+            <img class="logo" src="https://i.imgur.com/RWiFrje.png" alt="Logo">
+        </a>
+    </div>
+    
+    <div class="user-data">
+        <div class="first-row">
+            <title class="user-title">Your Performance Overview:</title>
+        </div>
+        <div class="fade-element"></div>
+
+        <div class="user-general-info">
+            <div class="user-info-box">
+                <div class="user-info-title tooltip">Total Steering Actions
+                    <span class="tooltiptext">Total number of steering actions across your journey</span>
+                </div>
+                <div style="display: flex; flex-direction: row;" id="all-time-sales-number" class="user-info-number">
+                    <div class="all-time-sales-number-value-container">0</div>
+                </div>
+                <div id="all-time-container" class="timeframe-stats-info-container" style="margin-top: 1vh;display: flex; font-size: 13px;">
+                    <div id="all-time-indicator" style="margin-right: 5px;"></div>
+                    <div id="all-time-stats-info" class="statistical-info">
+                
+                    </div>
+                    <div class="percent-sign">% more than average</div>
+                </div>
+            </div>
+
+            <div class="user-info-box">
+                <div class="user-info-title tooltip">Total Braking Actions
+                    <span class="tooltiptext">Total number of braking actions across your journey</span>
+                </div>
+                <div style="display: flex; flex-direction: row;" id="available-balance-number" class="user-info-number">
+                    <div class="available-balance-number-value-container">0</div>
+                </div>
+                <div id="payouts-container" class="timeframe-stats-info-container"
+                    style="margin-top: 1vh;display: flex; font-size: 13px;">
+                    <div id="payouts-indicator" style="margin-right: 5px;"></div>
+                    <div id="payouts-stats-info" class="statistical-info">
+                
+                    </div>
+                    <div class="percent-sign">% more than average</div>
+                </div>
+            </div>
+
+            <div class="user-info-box">
+                <div class="user-info-title tooltip">Mirror Fixations
+                    <span class="tooltiptext">Total number of fixations on mirrors</span>
+                </div>
+                <div style="display: flex; flex-direction: row;" id="inventory-value-number" class="user-info-number">
+                    <div class="inventory-value-number-value-container">0</div>
+                </div>                
+                <div id="listings-container" class="timeframe-stats-info-container"
+                    style="margin-top: 1vh;display: flex; font-size: 13px;">
+                    <div id="listings-indicator" style="margin-right: 5px;"></div>
+                    <div id="listings-stats-info" class="statistical-info">
+                
+                    </div>
+                    <div class="percent-sign">% more than average</div>
+                </div>
+            </div>
+
+            <div class="user-info-box">
+                <div class="user-info-title tooltip">Number of Accidents
+                    <span class="tooltiptext">Number of accidents you cased across the journey.</span>
+                </div>
+                <div style="display: flex; flex-direction: row;" id="inventory-value-number" class="user-info-number">
+                    <div class="inventory-value-number-value-container">0</div>
+                </div>
+                <div id="inventory-container" class="timeframe-stats-info-container"
+                    style="margin-top: 1vh;display: flex; font-size: 13px;">
+                    <div id="inventory-indicator" style="margin-right: 5px;"></div>
+                    <div id="inventory-stats-info" class="statistical-info">
+                
+                    </div>
+                    <div class="percent-sign">% more than average</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="user-sales-data">
+            <div class="user-sales-graph">
+                <div class="title-row">
+                    <div class="user-sales-graph-title tooltip">Pressure on Steering Wheel
+                        <span class="tooltiptext">Graph of your pressure on the steering wheel across the journey.</span>
+                    </div>
+                    <div id="weekly-container" class="timeframe-stats-info-container" style="display: flex; font-size: 12px;">
+                        <div id="weekly-indicator" style="margin-right: 5px;"></div>
+                        <div id="week-stats-info" class="statistical-info">
+                        
+                        </div>
+                        <div class="percent-sign">%</div>
+                    </div>
+                </div>
+                <div class="css-graph-div">
+                    <div class="graph-div">
+                        <canvas height="250px" id="chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="user-sales-graph">
+                <div class="title-row">
+                    <div class="user-sales-graph-title tooltip">Average Speed
+                        <span class="tooltiptext">Graph of your average speed across your journey</span>
+                        
+                    </div>
+                    <div id="month-container" class="timeframe-stats-info-container" style="display: flex; font-size: 12px;">
+                        <div id="month-indicator" style="margin-right: 5px;"></div>
+                        <div id="month-stats-info" class="statistical-info">
+                        
+                        </div>
+                        <div class="percent-sign">%</div>
+                    </div>
+                </div>
+                
+                <div class="css-graph-div">
+                    <div class="graph-div">
+                        <canvas height="250px" id="chart2"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="user-sales-graph">
+                <div class="title-row">
+                    <div class="user-sales-graph-title tooltip">Eye Saccade Velocity
+                        <span class="tooltiptext">The speed at which your eyes moved across your journey.</span>
+                    </div>
+                    <div id="year-container" class="timeframe-stats-info-container" style="display: flex; font-size: 12px;">
+                        <div id="year-indicator" style="margin-right: 5px;"></div>
+                        <div id="year-stats-info" class="statistical-info">
+                        
+                        </div>
+                        <div class="percent-sign">%</div>
+                    </div>
+                </div>
+
+                <div class="css-graph-div">
+                    <div class="graph-div">
+                        <canvas height="250px" id="chart3"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="user-sales-graph">
+                <div class="title-row">
+                    <div class="user-sales-graph-title tooltip">Eye Saccade Amplitude
+                        <span class="tooltiptext">The distance your eyes have moved per movement across your journey.</span>
+                    </div>
+                </div>
+
+                <div class="recent-sales-table">
+
+                </div>
+
+            </div>
+
+            <div class="user-sales-graph">
+                <div class="title-row">
+                    <div class="user-sales-graph-title tooltip">Head Movement
+                        <span class="tooltiptext">The amount your head moved away from a position across your journey.</span>
+                    </div>
+                </div>
+            
+                <div class="css-graph-div">
+                    <div class="graph-div">
+                        <canvas height="250px" id="vendors-bar-chart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="user-sales-graph">
+                <div class="title-row">
+                    <div class="user-sales-graph-title tooltip">Average Fixation Duration
+                        <span class="tooltiptext">Average amount of time spent focusing on a single item across your journey.</span>
+                    </div>
+                </div>
+            
+                <div class="css-graph-div">
+                    <div class="graph-div">
+                        <canvas height="250px" id="total-sales-chart"></canvas>
+                    </div>
+                </div>
+            
+            </div>
+
+        </div>
+
+        <div class="arrow bounce">
+            <img width="30px" src="https://i.imgur.com/uWW7YKq.png">
+        </div>
+
+        <div style="margin-top: 2vh;" class="user-sales-graph">
+            <div class="title-row">
+                <div class="user-sales-graph-title tooltip">Your Awards
+                    <span class="tooltiptext">A list of achievements your gained across your journey.</span>
+                </div>
+
+                <div class="view-now-button">
+                    <button class="view-button" onclick="">View All</button>
+                </div>
+            </div>
+        
+            <div id="live-inventory" class="recent-sales-table">
+                <div id="inventory-one" class="inventory-item">
+
+                </div>
+                <div id="inventory-two" class="inventory-item">
+                
+                </div>
+                <div id="inventory-three" class="inventory-item">
+                
+                </div>
+                <div id="inventory-four" class="inventory-item">
+                
+                </div>
+                <div id="inventory-five" class="inventory-item">
+                
+                </div>
+                <div id="inventory-six" class="inventory-item">
+                
+                </div>
+                <div id="inventory-seven" class="inventory-item">
+                
+                </div>
+                <div id="inventory-eight" class="inventory-item">
+                
+                </div>
+            </div>
+        
+        </div>
+
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.3.3/chart.umd.min.js"
+        integrity="sha512-mCXCsj30LV3PLPTIuWjZQX84qiQ56EgBZOsPUA+ya5mWmAb8Djdxa976zWzxquOwkh0TxI12KA4eniKpY3yKhA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>
