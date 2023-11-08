@@ -98,7 +98,7 @@ async function pull_data_statistics() {
     const average_steering = data.reduce((acc, curr) => acc + parseFloat(curr.steering), 0) / data.length;
     const average_throttle = data.reduce((acc, curr) => acc + parseFloat(curr.throttle), 0) / data.length;
     const average_brake = data.reduce((acc, curr) => acc + parseFloat(curr.brake), 0) / data.length;
-    const average_velocity_x = data.reduce((acc, curr) => acc + parseFloat(curr.velocity_x), 0) / data.length;
+    const average_velocity = data.reduce((acc, curr) => acc + parseFloat(curr.velocity_x)*parseFloat(curr.velocity_x) + parseFloat(curr.velocity_y)*parseFloat(curr.velocity_y) + parseFloat(curr.velocity_z)+parseFloat(curr.velocity_z), 0) / data.length;
     
     let number_of_brakes = 0
     let ids_array = []
@@ -115,7 +115,7 @@ async function pull_data_statistics() {
         average_steering,
         average_throttle,
         average_brake,
-        average_velocity_x: Math.abs(average_velocity_x),
+        average_velocity: Math.cbrt(average_velocity),
         number_of_brakes,
         total_users: ids_array.length
     }
