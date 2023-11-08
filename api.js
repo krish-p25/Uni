@@ -95,10 +95,46 @@ const scenario_one = sequelize.define('scenario_one', {
 
 const router = require('express').Router();
 
-router.get('/scenario-one-stats', (req, res) => {
+router.get('/scenario-one-stats', async (req, res) => {
     try {
-        const dataToWrite = JSON.parse(fs.readFileSync('./data-functions/data-summary.json', 'utf8'))
-        res.status(200).json(dataToWrite.scenario_one);
+        const dataToWrite = await JSON.parse(fs.readFileSync('./data-functions/data-summary.json', 'utf8'))
+        const all_data = await scenario_one.findAll();
+        const velocity_data = all_data.map(point => ({
+            velocity: Math.cbrt(parseFloat(point.velocity_x)*parseFloat(point.velocity_x) + parseFloat(point.velocity_y)*parseFloat(point.velocity_y) + parseFloat(point.velocity_z)*parseFloat(point.velocity_z)),
+            id: point.id,
+        }));
+        const velocity_data_grouped_by_id = velocity_data.reduce((acc, curr) => {
+            if (acc[curr.id]) {
+                acc[curr.id].push(curr.velocity);
+            }
+            else {
+                acc[curr.id] = [curr.velocity];
+            }
+            return acc;
+        }, {});
+
+        let maxLength = Math.max(...Object.values(velocity_data_grouped_by_id).map(arr => arr.length));
+
+        let averageArray = new Array(maxLength).fill(0);
+
+        for (let arr of Object.values(velocity_data_grouped_by_id)) {
+            for (let i = 0; i < maxLength; i++) {
+                if (i < arr.length) {
+                    averageArray[i] += arr[i];
+                }
+            }
+        }
+
+        averageArray = averageArray.map(sum => sum / Object.keys(velocity_data_grouped_by_id).length);
+        
+        const return_data = {
+            total_users: dataToWrite.scenario_one.total_users,
+            number_of_brakes: dataToWrite.scenario_one.number_of_brakes,
+            average_velocity: dataToWrite.scenario_one.average_velocity,
+            average_throttle: dataToWrite.scenario_one.average_throttle,
+            velocity_data: averageArray,
+        }
+        res.status(200).json(return_data);
     }
     catch (err) {
         console.log(err);
