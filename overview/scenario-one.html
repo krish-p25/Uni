@@ -26,7 +26,7 @@
                     <span class="tooltiptext">Total number of users who have experienced this scenario</span>
                 </div>
                 <div style="display: flex; flex-direction: row;" id="all-time-sales-number" class="user-info-number">
-                    <div class="all-time-sales-number-value-container">0</div>
+                    <div id="total-users" class="all-time-sales-number-value-container">0</div>
                 </div>
                 <div id="all-time-container" class="timeframe-stats-info-container" style="margin-top: 1vh;display: flex; font-size: 13px;">
                     <div id="all-time-indicator" style="margin-right: 5px;"></div>
@@ -42,7 +42,7 @@
                     <span class="tooltiptext">Total number of braking actions across your journey</span>
                 </div>
                 <div style="display: flex; flex-direction: row;" id="available-balance-number" class="user-info-number">
-                    <div class="available-balance-number-value-container">0</div>
+                    <div id="braking" class="available-balance-number-value-container">0</div>
                 </div>
                 <div id="payouts-container" class="timeframe-stats-info-container"
                     style="margin-top: 1vh;display: flex; font-size: 13px;">
@@ -55,11 +55,28 @@
             </div>
 
             <div class="user-info-box">
+                <div class="user-info-title tooltip">Average Velocity
+                    <span class="tooltiptext">Average velocity across this scenario.</span>
+                </div>
+                <div style="display: flex; flex-direction: row;" id="inventory-value-number" class="user-info-number">
+                    <div id="velocity" class="inventory-value-number-value-container">0</div>
+                </div>
+                <div id="inventory-container" class="timeframe-stats-info-container"
+                    style="margin-top: 1vh;display: flex; font-size: 13px;">
+                    <div id="inventory-indicator" style="margin-right: 5px;"></div>
+                    <div id="inventory-stats-info" class="statistical-info">
+                
+                    </div>
+                    <div class="percent-sign">% more than average</div>
+                </div>
+            </div>
+
+            <div class="user-info-box">
                 <div class="user-info-title tooltip">Average Acceleration
                     <span class="tooltiptext">Average acceleration across the scenario</span>
                 </div>
                 <div style="display: flex; flex-direction: row;" id="inventory-value-number" class="user-info-number">
-                    <div class="inventory-value-number-value-container">0</div>
+                    <div id="acceleration" class="inventory-value-number-value-container">0</div>
                 </div>                
                 <div id="listings-container" class="timeframe-stats-info-container"
                     style="margin-top: 1vh;display: flex; font-size: 13px;">
@@ -71,22 +88,7 @@
                 </div>
             </div>
 
-            <div class="user-info-box">
-                <div class="user-info-title tooltip">Average Velocity
-                    <span class="tooltiptext">Average velocity across this scenario.</span>
-                </div>
-                <div style="display: flex; flex-direction: row;" id="inventory-value-number" class="user-info-number">
-                    <div class="inventory-value-number-value-container">0</div>
-                </div>
-                <div id="inventory-container" class="timeframe-stats-info-container"
-                    style="margin-top: 1vh;display: flex; font-size: 13px;">
-                    <div id="inventory-indicator" style="margin-right: 5px;"></div>
-                    <div id="inventory-stats-info" class="statistical-info">
-                
-                    </div>
-                    <div class="percent-sign">% more than average</div>
-                </div>
-            </div>
+            
         </div>
 
         <div class="user-sales-data">
