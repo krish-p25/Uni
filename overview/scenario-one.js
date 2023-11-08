@@ -153,7 +153,7 @@ function average_speed_graph(data) {
                     ticks: {
                         // Format the tick values as currency (pounds)
                         callback: function (value, index, values) {
-                            return value.toLocaleString();
+                            return value.toLocaleString() + " mph";
                         },
                     },
                     grid: {
