@@ -115,18 +115,20 @@ router.get('/scenario-one-stats', async (req, res) => {
 
         let maxLength = Math.max(...Object.values(velocity_data_grouped_by_id).map(arr => arr.length));
 
+    let countArray = new Array(maxLength).fill(0);
         let averageArray = new Array(maxLength).fill(0);
 
         for (let arr of Object.values(velocity_data_grouped_by_id)) {
             for (let i = 0; i < maxLength; i++) {
                 if (i < arr.length) {
                     averageArray[i] += arr[i];
+                    countArray[i] += 1;
                 }
             }
         }
 
-        averageArray = averageArray.map(sum => sum / Object.keys(velocity_data_grouped_by_id).length);
-        
+        averageArray = averageArray.map((sum, index) => sum / countArray[index]);
+                
         const return_data = {
             total_users: dataToWrite.scenario_one.total_users,
             number_of_brakes: dataToWrite.scenario_one.number_of_brakes,
