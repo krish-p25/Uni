@@ -8,7 +8,10 @@ document.addEventListener('DOMContentLoaded', function () {
     .then(response => response.json())
     .then(data => {
         console.log(data)
-        //animateValue(document.querySelector('.all-time-sales-number-value-container'), 0, data.total_users, 2000, false)
+        animateValue(document.getElementById('total-users'), 0, data.total_users, 1800, false)
+        animateValue(document.getElementById('braking'), 0, (data.number_of_brakes/data.total_users).toFixed(2), 1800, true)
+        animateValue(document.getElementById('velocity'), 0, data.average_velocity_x, 1800, true)
+        animateValue(document.getElementById('acceleration'), 0, data.average_throttle, 1800, true)
     })
 })
 
