@@ -103,9 +103,11 @@ async function pull_data_statistics() {
     let number_of_brakes = 0
     let ids_array = []
     for (const point of data) {
+        //new brake identified and added to total number of brakes
         if (parseFloat(point.brake) > 0 && parseFloat(data[data.indexOf(point) + 1].brake) === 0) {
             number_of_brakes++
         }
+        //new user identified and added to total number of users
         if (!(ids_array.includes(point.id))) ids_array.push(point.id)
 
     }
