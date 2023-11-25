@@ -86,7 +86,6 @@ function average_speed_graph(data) {
                         const { ctx, chartArea } = chart;
 
                         if (!chartArea) {
-                            // This case happens on initial chart load
                             return;
                         }
                         return getGradient(ctx, chartArea);
@@ -97,7 +96,6 @@ function average_speed_graph(data) {
                         const { ctx, chartArea } = chart;
 
                         if (!chartArea) {
-                            // This case happens on initial chart load
                             return;
                         }
                         return getGradient(ctx, chartArea);
