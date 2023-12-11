@@ -144,4 +144,16 @@ router.get('/scenario-one-stats', async (req, res) => {
     }
 })
 
+router.post('/test-data-endpoint', async (req, res) => {
+    try {
+        const data = req.body;
+        console.log(data);
+        res.status(200).send('OK');
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).send('Internal Server Error');
+    }
+})
+
 module.exports = router;
