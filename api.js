@@ -93,6 +93,37 @@ const scenario_one = sequelize.define('scenario_one', {
     freezeTableName: true
 });
 
+const custom_data = sequelize.define('custom', {
+    timestamp: {
+        type: DataTypes.BIGINT,
+        allowNull: false
+    },
+    speed: {
+        type: DataTypes.NUMERIC,
+        allowNull: false
+    },
+    acceleration: {
+        type: DataTypes.NUMERIC,
+        allowNull: false
+    },
+    brake: {
+        type: DataTypes.NUMERIC,
+        allowNull: false
+    },
+    driver: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    steering: {
+        type: DataTypes.NUMERIC,
+        allowNull: false
+    }
+}, {
+    timestamps: false,
+    tableName: 'custom',
+    freezeTableName: true
+})
+
 const router = require('express').Router();
 
 router.get('/scenario-one-stats', async (req, res) => {
@@ -149,6 +180,20 @@ router.post('/test-data-endpoint', async (req, res) => {
         const data = req.body;
         console.log(data);
         res.status(200).send('OK');
+        //speed, acceleration, throttle, number of brakes, steering, time, number of accidents
+        try {
+            await custom_data.create({
+                timestamp: data.timestamp,
+                speed: data.speed,
+                acceleration: data.acceleration,
+                brake: data.brake,
+                driver: data.driver,
+                steering: data.steering
+            });
+        }
+        catch (err) {
+            console.log(`${err}`)
+        }
     }
     catch (err) {
         console.log(err);
