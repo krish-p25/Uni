@@ -117,6 +117,10 @@ const custom_data = sequelize.define('custom', {
     steering: {
         type: DataTypes.NUMERIC,
         allowNull: false
+    },
+    id: {
+        type: DataTypes.STRING,
+        primaryKey: true
     }
 }, {
     timestamps: false,
@@ -182,18 +186,55 @@ router.post('/test-data-endpoint', async (req, res) => {
         res.status(200).send('OK');
         //speed, acceleration, throttle, number of brakes, steering, time, number of accidents
         try {
-            await custom_data.create({
-                timestamp: data.timestamp,
-                speed: data.speed,
-                acceleration: data.acceleration,
-                brake: data.brake,
-                driver: data.driver,
-                steering: data.steering
-            });
+            for (const input_data of data.data) {
+                await custom_data.create({
+                    timestamp: input_data.Time,
+                    speed: input_data.Speed,
+                    acceleration: input_data.Acceleration,
+                    brake: input_data.IsBraking,
+                    driver: input_data.DriverID,
+                    steering: input_data.SteeringAngle
+                });
+            }
+            
         }
         catch (err) {
             console.log(`${err}`)
         }
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).send('Internal Server Error');
+    }
+})
+
+async function get_user_data(driverId) {
+    try {
+        const user_data = await custom_data.findAll({
+            where: {
+                driver: driverId
+            }
+        });
+        return {
+            message: "OK",
+            status: 200,
+            data: user_data
+        }
+    }
+    catch (err) {
+        console.log('error getting user data', err)
+        return {
+            message: "Internal Server Error",
+            status: 500
+        }
+    }
+}
+
+router.post('/get-user-data', async (req, res) => {
+    try {
+        const driverId = req.body.driverId;
+        const user_data = await get_user_data(driverId);
+        res.status(user_data.status).json(user_data);
     }
     catch (err) {
         console.log(err);
