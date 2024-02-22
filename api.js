@@ -255,7 +255,45 @@ async function recalculate_averages() {
             }
             return acc;
         }, {});
-        console.log(data_grouped_by_driver);
+        //get average steering actions, average braking actions, and average duration in miliseconds
+        const average_steering_actions = Object.values(data_grouped_by_driver).map(arr => {
+            let count = 0;
+            for (let i = 0; i < arr.length - 1; i++) {
+                if (arr[i].steering > 0 && arr[i + 1].steering < 0) {
+                    count++;
+                }
+                if (arr[i].steering < 0 && arr[i + 1].steering > 0) {
+                    count++;
+                }
+            }
+            return count;
+        }).reduce((acc, curr) => acc + curr, 0) / Object.values(data_grouped_by_driver).length;
+        const average_braking_actions = Object.values(data_grouped_by_driver).map(arr => {
+            let count = 0;
+            for (let i = 0; i < arr.length - 1; i++) {
+                if (arr[i].brake > 0 && arr[i + 1].brake == 0) {
+                    count++;
+                }
+            }
+            return count;
+        }).reduce((acc, curr) => acc + curr, 0) / Object.values(data_grouped_by_driver).length;
+        const average_duration = Object.values(data_grouped_by_driver).map(arr => arr[arr.length - 1].timestamp - arr[0].timestamp).reduce((acc, curr) => acc + curr, 0) / Object.values(data_grouped_by_driver).length;
+        const average_throttle = Object.values(data_grouped_by_driver).map(arr => arr.map(point => point.acceleration).reduce((acc, curr) => acc + parseFloat(curr), 0) / arr.length).reduce((acc, curr) => acc + curr, 0) / Object.values(data_grouped_by_driver).length;
+        const average_speed = Object.values(data_grouped_by_driver).map(arr => arr.map(point => point.speed).reduce((acc, curr) => acc + parseFloat(curr), 0) / arr.length).reduce((acc, curr) => acc + curr, 0) / Object.values(data_grouped_by_driver).length;
+        //write to file
+        const dataToWrite = {
+                total_users: Object.values(data_grouped_by_driver).length,
+                number_of_brakes: average_braking_actions,
+                average_velocity: average_speed,
+                average_throttle: average_throttle,
+                average_steering_actions: average_steering_actions,
+                average_duration: average_duration
+        }
+        fs.writeFileSync('./averages.json', JSON.stringify(dataToWrite));
+        return {
+            message: "OK",
+            status: 200
+        }
     }
     catch (err) {
         console.log('error recalculating averages', err);
