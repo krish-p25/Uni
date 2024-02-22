@@ -242,4 +242,29 @@ router.post('/get-user-data', async (req, res) => {
     }
 })
 
+async function recalculate_averages() {
+    try {
+        const all_data = await custom_data.findAll();
+        //split all data into seperate arrays for each driver
+        const data_grouped_by_driver = all_data.reduce((acc, curr) => {
+            if (acc[curr.driver]) {
+                acc[curr.driver].push(curr);
+            }
+            else {
+                acc[curr.driver] = [curr];
+            }
+            return acc;
+        }, {});
+        console.log(data_grouped_by_driver);
+    }
+    catch (err) {
+        console.log('error recalculating averages', err);
+        return {
+            message: "Internal Server Error",
+            status: 500
+        }
+    }
+}
+recalculate_averages()
+
 module.exports = router;
