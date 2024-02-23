@@ -944,6 +944,14 @@ body {
         border: none;
 }
 
+.positive {
+    color: green;
+}
+
+.negative {
+    color: red;
+}
+
 @keyframes glareAnimation {
     0% {
         background-position: left center;
