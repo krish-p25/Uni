@@ -289,6 +289,38 @@ async function recalculate_averages() {
                 average_steering_actions: average_steering_actions,
                 average_duration: average_duration
         }
+        //find average velocity vs time across all drivers
+        const velocity_data = all_data.map(datapoint => {
+            return {
+                velocity: parseFloat(datapoint.speed),
+                id: datapoint.driver,
+                timestamp: parseFloat(datapoint.timestamp) - all_data.filter(item => item.driver == datapoint.driver).sort((a, b) => a.timestamp - b.timestamp)[0].timestamp
+            }
+        })
+        const velocity_data_grouped_by_id = velocity_data.reduce((acc, curr) => {
+            if (acc[curr.id]) {
+                acc[curr.id].push(curr.velocity);
+            }
+            else {
+                acc[curr.id] = [curr.velocity];
+            }
+            return acc;
+        }, {});
+        console.log(velocity_data_grouped_by_id)
+
+        let maxLength = Math.max(...Object.values(velocity_data_grouped_by_id).map(arr => arr.length));
+        let countArray = new Array(maxLength).fill(0);
+        let averageArray = new Array(maxLength).fill(0);
+        for (let arr of Object.values(velocity_data_grouped_by_id)) {
+            for (let i = 0; i < maxLength; i++) {
+                if (i < arr.length) {
+                    averageArray[i] += arr[i];
+                    countArray[i] += 1;
+                }
+            }
+        }
+        averageArray = averageArray.map((sum, index) => sum / countArray[index]);
+        dataToWrite.velocity_data = averageArray;
         fs.writeFileSync('./averages.json', JSON.stringify(dataToWrite));
         return {
             message: "OK",
@@ -304,5 +336,34 @@ async function recalculate_averages() {
     }
 }
 recalculate_averages()
+
+async function get_average_values() {
+    try {
+        const data = await JSON.parse(fs.readFileSync('./averages.json', 'utf8'));
+        return {
+            message: "OK",
+            status: 200,
+            data: data
+        }
+    }
+    catch (err) {
+        console.log('error getting average values', err);
+        return {
+            message: "Internal Server Error",
+            status: 500
+        }
+    }
+}
+
+router.get('/get-average-values', async (req, res) => {
+    try {
+        const average_values = await get_average_values();
+        res.status(average_values.status).json(average_values);
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).send('Internal Server Error');
+    }
+})
 
 module.exports = router;
