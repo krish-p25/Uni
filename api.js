@@ -306,7 +306,6 @@ async function recalculate_averages() {
             }
             return acc;
         }, {});
-        console.log(velocity_data_grouped_by_id)
 
         let maxLength = Math.max(...Object.values(velocity_data_grouped_by_id).map(arr => arr.length));
         let countArray = new Array(maxLength).fill(0);
@@ -335,7 +334,6 @@ async function recalculate_averages() {
         }
     }
 }
-recalculate_averages()
 
 async function get_average_values() {
     try {
