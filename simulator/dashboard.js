@@ -44,6 +44,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 //find total braking actions value by seeing how many brake values of 1 have a value of 0 before
                 const brakingActions = resultsArray.filter(item => item.brake > 0 && resultsArray[resultsArray.indexOf(item) - 1]?.brake == 0).length
                 animateValue(document.querySelector('.available-balance-number-value-container'), 0, brakingActions, 1500, false);
+            
+                //find average speed
+                const averageSpeed = data.data.reduce((acc, curr) => acc + parseFloat(curr.speed), 0) / data.data.length;
+                animateValue(document.querySelector('.speed-number-value-container'), 0, averageSpeed, 1500, true);
+            
+                //pass values into compare with averages function
+                compareWithAverages(steeringActions, brakingActions, driveDuration, averageSpeed);
             }
         })
     }
@@ -83,4 +90,30 @@ function animateValue(obj, start, end, duration, currency, easingFunction = cubi
         }
     };
     window.requestAnimationFrame(step);
+}
+
+function compareWithAverages(steeringActions, brakingActions, driveDuration, averageSpeed) {
+    fetch('https://driving.krishrp.xyz/api/get-average-values')
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 200) {
+            //calculate percentage difference between user and average values
+            const steeringDifference = ((parseFloat(steeringActions) - data.data.average_steering_actions) / data.data.average_steering_actions) * 100;
+            const brakingDifference = ((parseFloat(brakingActions) - data.data.number_of_brakes) / data.data.number_of_brakes) * 100;
+            const driveDurationDifference = ((parseFloat(driveDuration) - data.data.average_duration) / data.data.average_duration) * 100;
+            const averageSpeedDifference = ((parseFloat(averageSpeed) - data.data.average_velocity) / data.data.average_velocity) * 100;
+            //pass values into animate value function
+            animateValue(document.querySelector('#steering'), 0, steeringDifference, 1500, false);
+            animateValue(document.querySelector('#braking'), 0, brakingDifference, 1500, false);
+            animateValue(document.querySelector('#duration'), 0, driveDurationDifference, 1500, false);
+            animateValue(document.querySelector('#speed'), 0, averageSpeedDifference, 1500, false);
+
+            //change colour of percentage difference based on if it is positive or negative
+            (steeringDifference > 0) ? document.querySelector('#steering').parentElement.classList.add('positive') : document.querySelector('#steering').parentElement.classList.add('negative');
+            (brakingDifference > 0) ? document.querySelector('#braking').parentElement.classList.add('positive') : document.querySelector('#braking').parentElement.classList.add('negative');
+            (driveDurationDifference > 0) ? document.querySelector('#duration').parentElement.classList.add('positive') : document.querySelector('#duration').parentElement.classList.add('negative');
+            (averageSpeedDifference > 0) ? document.querySelector('#speed').parentElement.classList.add('positive') : document.querySelector('#speed').parentElement.classList.add('negative');
+
+        }
+    })
 }
