@@ -129,6 +129,7 @@ function compareWithAverages(steeringActions, brakingActions, driveDuration, ave
             }
 
             renderAverageSpeedGraph(allData, data.data.velocity_data);
+            renderAverageSteeringWheelAngleGraph(allData, data.data.steering_data);
         }
     })
 }
@@ -304,4 +305,160 @@ function renderAverageSpeedGraph(driver_data, average_data) {
             }
         }],
     });
+}
+
+function renderAverageSteeringWheelAngleGraph(driver_data, average_data) {
+    const driverData = driver_data.map(item => parseFloat(item.steering));
+    const averageData = average_data
+    const ctx = document.getElementById('chart').getContext('2d');
+
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Array.from({ length: driverData.length }, (_, i) => i + 1),
+            datasets: [
+                {
+                    label: 'Your Steering Wheel Angle',
+                    data: driverData,
+                    backgroundColor: 'rgba(0, 0, 0, 0)',
+                    borderColor: function (context) {
+                        const chart = context.chart;
+                        const { ctx, chartArea } = chart;
+
+                        if (!chartArea) {
+                            // This case happens on initial chart load
+                            return;
+                        }
+                        return getGradient(ctx, chartArea);
+                    },
+                    pointBorderColor: "white",
+                    pointHoverBackgroundColor: "white",
+                    pointRadius: 3,
+                    borderWidth: 2,
+                    pointBackgroundColor: function (context) {
+                        const chart = context.chart;
+                        const { ctx, chartArea } = chart;
+
+                        if (!chartArea) {
+                            // This case happens on initial chart load
+                            return;
+                        }
+                        return getGradient(ctx, chartArea);
+                    },
+                },
+                {
+                    label: 'Average Steering Wheel Angle',
+                    data: averageData,
+                    backgroundColor: 'rgba(0, 0, 0, 0)',
+                    borderColor: 'grey',
+                    pointBorderColor: "white",
+                    pointHoverBackgroundColor: "white",
+                    pointBackgroundColor: 'grey',
+                    pointRadius: 3,
+                    borderWidth: 2,
+                    borderDash: [2, 2],
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: false,
+                    text: "Sales Count"
+                },
+                tooltip: {
+                    mode: "index",
+                    intersect: false,
+                    backgroundColor: "#fffeff",
+                    titleColor: "#1e2024",
+                    footerColor: "#1e2024",
+                    bodyColor: "#1e2024",
+                    borderColor: "grey",
+                },
+                legend: {
+                    display: false,
+                },
+
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: false,
+                    },
+                    grid: {
+                        display: false,
+                    },
+                    ticks: {
+                        autoSkip: true,
+                        maxTicksLimit: 7
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: false,
+                    },
+                    grid: {
+                        color: "#f0f0f0",
+                    },
+                    ticks: {
+                        callback: function (value) { if (value % 1 === 0) { return value; } }
+                    }
+                }
+            },
+            hoverRadius: 0,
+            animation: {
+                tension: {
+                    duration: 1000,
+                    easing: 'easeInBounce',
+                    from: 0.6,
+                    to: 0.7,
+                    loop: false
+                },
+                onComplete: function () {
+                    delayed = true;
+                },
+                delay: function (context) {
+                    let delay = 0;
+                    if (context.type === 'data' && context.mode === 'default' && !delayed) {
+                        delay = context.dataIndex * 5 + context.datasetIndex * 10;
+                    }
+                    return delay;
+                },
+            },
+            linearGradientLine: true,
+        },
+        plugins: [{
+            afterDraw: chart => {
+                if (chart.tooltip?._active?.length) {
+                    let x = chart.tooltip._active[0].element.x;
+                    let yAxis = chart.scales.y;
+                    let ctx = chart.ctx;
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(x, yAxis.top);
+                    ctx.lineTo(x, yAxis.bottom);
+                    ctx.lineWidth = 1;
+                    ctx.strokeStyle = 'grey';
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            },
+            draw: function () {
+                let ctx = chart.ctx;
+                ctx.save();
+                ctx.shadowColor = 'red';
+                ctx.shadowBlur = 12;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 5;
+                ctx.stroke();
+                draw.apply(this, arguments);
+                ctx.restore();
+            }
+        }],
+    });
+    
+
 }
