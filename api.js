@@ -150,7 +150,7 @@ router.get('/scenario-one-stats', async (req, res) => {
 
         let maxLength = Math.max(...Object.values(velocity_data_grouped_by_id).map(arr => arr.length));
 
-    let countArray = new Array(maxLength).fill(0);
+        let countArray = new Array(maxLength).fill(0);
         let averageArray = new Array(maxLength).fill(0);
 
         for (let arr of Object.values(velocity_data_grouped_by_id)) {
@@ -163,7 +163,7 @@ router.get('/scenario-one-stats', async (req, res) => {
         }
 
         averageArray = averageArray.map((sum, index) => sum / countArray[index]);
-                
+
         const return_data = {
             total_users: dataToWrite.scenario_one.total_users,
             number_of_brakes: dataToWrite.scenario_one.number_of_brakes,
@@ -318,8 +318,41 @@ async function recalculate_averages() {
                 }
             }
         }
+
+        //find average steering wheel angle vs time across all drivers
+        const steering_data = all_data.map(datapoint => {
+            return {
+                steering: parseFloat(datapoint.steering),
+                id: datapoint.driver,
+                timestamp: parseFloat(datapoint.timestamp) - all_data.filter(item => item.driver == datapoint.driver).sort((a, b) => a.timestamp - b.timestamp)[0].timestamp
+            }
+        })
+        const steering_data_grouped_by_id = steering_data.reduce((acc, curr) => {
+            if (acc[curr.id]) {
+                acc[curr.id].push(curr.steering);
+            }
+            else {
+                acc[curr.id] = [curr.steering];
+            }
+            return acc;
+        }, {});
+
+        let maxLengthSteering = Math.max(...Object.values(steering_data_grouped_by_id).map(arr => arr.length));
+        let countArraySteering = new Array(maxLengthSteering).fill(0);
+        let averageArraySteering = new Array(maxLengthSteering).fill(0);
+        for (let arr of Object.values(steering_data_grouped_by_id)) {
+            for (let i = 0; i < maxLengthSteering; i++) {
+                if (i < arr.length) {
+                    averageArraySteering[i] += arr[i];
+                    countArraySteering[i] += 1;
+                }
+            }
+        }
+
         averageArray = averageArray.map((sum, index) => sum / countArray[index]);
+        averageArraySteering = averageArraySteering.map((sum, index) => sum / countArraySteering[index]);
         dataToWrite.velocity_data = averageArray;
+        dataToWrite.steering_data = averageArraySteering;
         fs.writeFileSync('./averages.json', JSON.stringify(dataToWrite));
         return {
             message: "OK",
@@ -334,6 +367,7 @@ async function recalculate_averages() {
         }
     }
 }
+recalculate_averages()
 
 async function get_average_values() {
     try {
