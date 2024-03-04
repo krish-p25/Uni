@@ -114,6 +114,20 @@ function compareWithAverages(steeringActions, brakingActions, driveDuration, ave
             (driveDurationDifference > 0) ? document.querySelector('#duration').parentElement.classList.add('positive') : document.querySelector('#duration').parentElement.classList.add('negative');
             (averageSpeedDifference > 0) ? document.querySelector('#speed').parentElement.classList.add('positive') : document.querySelector('#speed').parentElement.classList.add('negative');
 
+            //change text content depeiending on if the percentage difference is positive or negative
+            if (steeringDifference <= 0) {
+                document.querySelector('#steering').parentElement.querySelector('.percent-sign').textContent = `% less than average`;
+            }
+            if (brakingDifference <= 0) {
+                document.querySelector('#braking').parentElement.querySelector('.percent-sign').textContent = `% less than average`;
+            }
+            if (driveDurationDifference <= 0) {
+                document.querySelector('#duration').parentElement.querySelector('.percent-sign').textContent = `% less than average`;
+            }
+            if (averageSpeedDifference <= 0) {
+                document.querySelector('#speed').parentElement.querySelector('.percent-sign').textContent = `% less than average`;
+            }
+
             renderAverageSpeedGraph(allData, data.data.velocity_data);
         }
     })
