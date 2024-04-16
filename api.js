@@ -128,6 +128,21 @@ const custom_data = sequelize.define('custom', {
     freezeTableName: true
 })
 
+const indicators = sequelize.define('indicators', {
+    timestamp: {
+        type: DataTypes.BIGINT,
+        allowNull: false
+    },
+    driver: {
+        type: DataTypes.STRING,
+        allowNull: false
+    }
+}, {
+    timestamps: false,
+    tableName: 'indicators',
+    freezeTableName: true
+})
+
 const router = require('express').Router();
 
 router.get('/scenario-one-stats', async (req, res) => {
@@ -182,7 +197,6 @@ router.get('/scenario-one-stats', async (req, res) => {
 router.post('/test-data-endpoint', async (req, res) => {
     try {
         const data = req.body;
-        console.log(data);
         res.status(200).send('OK');
         //speed, acceleration, throttle, number of brakes, steering, time, number of accidents
         try {
@@ -391,6 +405,45 @@ router.get('/get-average-values', async (req, res) => {
     try {
         const average_values = await get_average_values();
         res.status(average_values.status).json(average_values);
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).send('Internal Server Error');
+    }
+})
+
+async function create_indicator(driverId) {
+    try {
+        await indicators.create({
+            timestamp: Date.now(),
+            driver: driverId
+        });
+        return {
+            message: "OK",
+            status: 200
+        }
+    }
+    catch (err) {
+        console.log('error creating indicator', err);
+        return {
+            message: "Internal Server Error",
+            status: 500
+        }
+    }
+}
+
+router.post('/scenario-start', async (req, res) => {
+    try {
+        console.log(res.body)
+        const driverId = req.body.driverId;
+        console.log('scenario started', driverId);
+        await create_indicator(driverId);
+        if (user_data.status == 200) {
+            res.status(200).send('OK');
+        }
+        else {
+            res.status(500).send('Internal Server Error');
+        }
     }
     catch (err) {
         console.log(err);
