@@ -136,6 +136,10 @@ const indicators = sequelize.define('indicators', {
     driver: {
         type: DataTypes.STRING,
         allowNull: false
+    },
+    id: {
+        type: DataTypes.STRING,
+        primaryKey: true
     }
 }, {
     timestamps: false,
@@ -209,8 +213,8 @@ router.post('/test-data-endpoint', async (req, res) => {
                     driver: input_data.DriverID,
                     steering: input_data.SteeringAngle
                 });
+                console.log('data written to database', input_data.DriverID)
             }
-            
         }
         catch (err) {
             console.log(`${err}`)
@@ -381,7 +385,6 @@ async function recalculate_averages() {
         }
     }
 }
-recalculate_averages()
 
 async function get_average_values() {
     try {
@@ -424,7 +427,7 @@ async function create_indicator(driverId) {
         }
     }
     catch (err) {
-        console.log('error creating indicator', err);
+        console.log('error creating indicator', `${err}`);
         return {
             message: "Internal Server Error",
             status: 500
@@ -432,12 +435,11 @@ async function create_indicator(driverId) {
     }
 }
 
-router.post('/scenario-start', async (req, res) => {
+router.get('/scenario-start', async (req, res) => {
     try {
-        console.log(res.body)
-        const driverId = req.body.driverId;
+        const driverId = req.query.driverId;
         console.log('scenario started', driverId);
-        await create_indicator(driverId);
+        const user_data = await create_indicator(driverId);
         if (user_data.status == 200) {
             res.status(200).send('OK');
         }
