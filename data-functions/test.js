@@ -216,3 +216,14 @@ async function import_scenario_one_from_csv() {
         
     }
 }
+
+async function test_data() {
+    const all_data = await scenario_one.findAll();
+    //split the data into separate arrays for each unique driver id and find first timestamp in each array
+    const unique_ids = [...new Set(all_data.map(data => data.id))];
+    const first_timestamps = unique_ids.map(id => all_data.filter(data => data.id === id).sort((a, b) => parseFloat(a.time)-parseFloat(b.time))[0].time);
+    const last_timestamps = unique_ids.map(id => all_data.filter(data => data.id === id).sort((a, b) => parseFloat(a.time)-parseFloat(b.time)).slice(-1)[0].time);
+    const duartion_of_drive = last_timestamps.map((last, index) => parseFloat(last) - parseFloat(first_timestamps[index]))
+    console.log(duartion_of_drive)
+}
+test_data()
