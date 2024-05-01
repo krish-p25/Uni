@@ -140,6 +140,10 @@ const indicators = sequelize.define('indicators', {
     id: {
         type: DataTypes.STRING,
         primaryKey: true
+    },
+    scenario: {
+        type: DataTypes.STRING,
+        allowNull: false
     }
 }, {
     timestamps: false,
@@ -213,7 +217,7 @@ router.post('/test-data-endpoint', async (req, res) => {
                     driver: input_data.DriverID,
                     steering: input_data.SteeringAngle
                 });
-                console.log('data written to database', input_data.DriverID)
+                //console.log( new Date().toLocaleString('en-GB', { timeZone: 'Europe/London' }), ' - Data written to database', input_data.DriverID)
             }
         }
         catch (err) {
@@ -372,6 +376,7 @@ async function recalculate_averages() {
         dataToWrite.velocity_data = averageArray;
         dataToWrite.steering_data = averageArraySteering;
         fs.writeFileSync('./averages.json', JSON.stringify(dataToWrite));
+        console.log(new Date().toLocaleString('en-GB', { timeZone: 'Europe/London' }), ' - Averages recalculated');
         return {
             message: "OK",
             status: 200
@@ -415,11 +420,12 @@ router.get('/get-average-values', async (req, res) => {
     }
 })
 
-async function create_indicator(driverId) {
+async function create_indicator(driverId, scenario) {
     try {
         await indicators.create({
             timestamp: Date.now(),
-            driver: driverId
+            driver: driverId,
+            scenario
         });
         return {
             message: "OK",
@@ -438,8 +444,10 @@ async function create_indicator(driverId) {
 router.get('/scenario-start', async (req, res) => {
     try {
         const driverId = req.query.driverId;
-        console.log('scenario started', driverId);
-        const user_data = await create_indicator(driverId);
+        const scenario = req.query.scenario;
+        console.log(res.query)
+        console.log(new Date().toLocaleString('en-GB', { timeZone: 'Europe/London' }), ' - Scenario started', driverId);
+        const user_data = await create_indicator(driverId, scenario);
         if (user_data.status == 200) {
             res.status(200).send('OK');
         }
