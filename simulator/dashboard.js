@@ -16,14 +16,13 @@ document.addEventListener('DOMContentLoaded', function () {
             if (data.status === 200) {
                 resultsArray = data.data;
                 //find total driving duration
-                const driveDuration = data.data.sort((a, b) => a.timestamp - b.timestamp).reduce((acc, curr, index, array) => {
-                    if (index === 0) {
-                        return 0;
-                    }
-                    return acc + (curr.timestamp - array[index - 1].timestamp);
-                }, 0);
+                const firstTimestamp = data.data.sort((a, b) => a.timestamp - b.timestamp)[0]
+                const lastTimestamp = data.data.sort((a, b) => a.timestamp - b.timestamp)[data.data.length - 1]
+                console.log(firstTimestamp, lastTimestamp)
+                driveDuration = lastTimestamp.timestamp - firstTimestamp.timestamp;
+                console.log(driveDuration)
                 const minutes = Math.floor(driveDuration / 60000);
-                const seconds = driveDuration % 60;
+                const seconds = Math.floor((driveDuration - minutes*60000) / 1000);
                 document.querySelector('.inventory-value-number-value-container').textContent = `${minutes}m ${seconds}s`;
                 
                 //find total steering actions value from seeing how many time the steering value changes from incresaing to decreasing or vice versa
@@ -34,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (array[index - 1].steering > curr.steering && array[index + 1]?.steering > curr.steering) {
                         return acc + 1;
                     }
-                    if (array[index - 1].steering < curr.steering && array[index + 1].steering < curr.steering) {
+                    if (array[index - 1]?.steering < curr?.steering && array[index + 1]?.steering < curr?.steering) {
                         return acc + 1;
                     }
                     return acc;
