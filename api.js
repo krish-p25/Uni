@@ -237,10 +237,16 @@ async function get_user_data(driverId) {
                 driver: driverId
             }
         });
+        const indicators_data = await indicators.findAll({
+            where: {
+                driver: driverId
+            }
+        });
         return {
             message: "OK",
             status: 200,
-            data: user_data
+            data: user_data,
+            indicators: indicators_data
         }
     }
     catch (err) {
@@ -445,7 +451,7 @@ router.get('/scenario-start', async (req, res) => {
     try {
         const driverId = req.query.driverId;
         const scenario = req.query.scenario;
-        console.log(res.query)
+        console.log(req.query)
         console.log(new Date().toLocaleString('en-GB', { timeZone: 'Europe/London' }), ' - Scenario started', driverId);
         const user_data = await create_indicator(driverId, scenario);
         if (user_data.status == 200) {
