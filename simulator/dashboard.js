@@ -18,9 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 //find total driving duration
                 const firstTimestamp = data.data.sort((a, b) => a.timestamp - b.timestamp)[0]
                 const lastTimestamp = data.data.sort((a, b) => a.timestamp - b.timestamp)[data.data.length - 1]
-                console.log(firstTimestamp, lastTimestamp)
                 driveDuration = lastTimestamp.timestamp - firstTimestamp.timestamp;
-                console.log(driveDuration)
                 const minutes = Math.floor(driveDuration / 60000);
                 const seconds = Math.floor((driveDuration - minutes*60000) / 1000);
                 document.querySelector('.inventory-value-number-value-container').textContent = `${minutes}m ${seconds}s`;
@@ -49,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 animateValue(document.querySelector('.speed-number-value-container'), 0, averageSpeed, 1500, true);
             
                 //pass values into compare with averages function
-                compareWithAverages(steeringActions, brakingActions, driveDuration, averageSpeed, data.data);
+                compareWithAverages(steeringActions, brakingActions, driveDuration, averageSpeed, data.data, data.indicators);
             }
         })
     }
@@ -91,7 +89,7 @@ function animateValue(obj, start, end, duration, currency, easingFunction = cubi
     window.requestAnimationFrame(step);
 }
 
-function compareWithAverages(steeringActions, brakingActions, driveDuration, averageSpeed, allData) {
+function compareWithAverages(steeringActions, brakingActions, driveDuration, averageSpeed, allData, indicators) {
     fetch('https://driving.krishrp.xyz/api/get-average-values')
     .then(response => response.json())
     .then(data => {
@@ -127,7 +125,7 @@ function compareWithAverages(steeringActions, brakingActions, driveDuration, ave
                 document.querySelector('#speed').parentElement.querySelector('.percent-sign').textContent = `% less than average`;
             }
 
-            renderAverageSpeedGraph(allData, data.data.velocity_data);
+            renderAverageSpeedGraph(allData, data.data.velocity_data, indicators);
             renderAverageSteeringWheelAngleGraph(allData, data.data.steering_data);
         }
     })
@@ -153,10 +151,22 @@ Chart.defaults.backgroundColor = '#fffeff';
 Chart.defaults.elements.point.pointStyle = false;
 let delayed, width, height, gradient;
 
-function renderAverageSpeedGraph(driver_data, average_data) {
+function renderAverageSpeedGraph(driver_data, average_data, indicators) {
     const driverData = driver_data.map(item => parseFloat(item.speed));
     const averageData = average_data
     const ctx = document.getElementById('chart2').getContext('2d');
+    let data_overlay = indicators.map(item => {
+        return {
+            type: 'bar',
+            x: item.timestamp,
+            y: 10,
+            yMax: 100,
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            borderColor: 'rgba(255, 99, 132, 1)',
+            borderWidth: 1
+        }
+    });
+
     const chart = new Chart(ctx, {
         type: 'line',
         data: {
