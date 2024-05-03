@@ -9,6 +9,7 @@ const api = require('./api.js');
 const cert = fs.readFileSync('./certs/certificate.crt');
 const ca = fs.readFileSync('./certs/ca_bundle.crt');
 const key = fs.readFileSync('./certs/private.key');
+const pg = require('pg');
 
 let options = {
     cert: cert,
