@@ -396,6 +396,7 @@ async function recalculate_averages() {
         }
     }
 }
+recalculate_averages()
 
 async function get_average_values() {
     try {
