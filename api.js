@@ -4,7 +4,8 @@ const { Sequelize, DataTypes } = require('sequelize');
 const pg = require('pg');
 
 const sequelize = new Sequelize('postgres://postgres:Wperkin-10@localhost:5432/postgres', {
-    dialectModule: pg
+    dialectModule: pg,
+    logging: false
 });
 
 const custom_data = sequelize.define('custom', {
