@@ -84,9 +84,8 @@ router.post('/test-data-endpoint', async (req, res) => {
                     brake: input_data.IsBraking,
                     driver: input_data.DriverID,
                     steering: input_data.SteeringAngle,
-                    
                 });
-                //console.log( new Date().toLocaleString('en-GB', { timeZone: 'Europe/London' }), ' - Data written to database', input_data.DriverID)
+                console.log( new Date().toLocaleString('en-GB', { timeZone: 'Europe/London' }), ' - Data written to database', input_data.DriverID)
             }
         }
         catch (err) {
