@@ -125,8 +125,34 @@ function compareWithAverages(steeringActions, brakingActions, driveDuration, ave
                 document.querySelector('#speed').parentElement.querySelector('.percent-sign').textContent = `% less than average`;
             }
 
-            renderAverageSpeedGraph(allData, data.data.velocity_data, indicators);
-            renderAverageSteeringWheelAngleGraph(allData, data.data.steering_data);
+            //create array of timestamps changed to seconds to be used in x axis of charts
+            const timestamps = allData.map(item => item.timestamp);
+            const firstTimestamp = timestamps[0];
+            const lastTimestamp = timestamps[timestamps.length - 1];
+            let timeStampsArray = [];
+
+            for (let i = 0; i < timestamps.length; i++) {
+                timeStampsArray.push(`${Math.floor((timestamps[i] - firstTimestamp) / 1000)}s`);
+            }
+
+            renderAverageSpeedGraph(allData, data.data.velocity_data, indicators, timeStampsArray);
+            renderAverageSteeringWheelAngleGraph(allData, data.data.steering_data, timeStampsArray);
+            renderAverageAccelerationGraph(allData, data.data.acceleration_data, indicators, timeStampsArray);
+        
+            for (const indicator of indicators) {
+                const relevantData = allData.filter(item => item.timestamp > indicator.timestamp);
+                const reactionData = relevantData.filter(item => item.brake > 0 || item.acceleration < 0 || (item.acceleration - relevantData[relevantData.indexOf(item) - 1]?.acceleration < 0))[0];
+                const recentSalesContainer = document.querySelector('.recent-sales-table');
+                const reactionHtml = `
+                <div class="recent-sale">
+                    <div class="recent-sale-shoe">Scenario ${indicators.indexOf(indicator) + 1}</div>
+                    <div style=";gap: 5px; font-size: 12px; display:flex; flex-direction: column" class="info-container">
+                        <div style="color: grey" class="recent-sale-date">${reactionData.timestamp - indicator.timestamp} ms</div>
+                    </div>
+                </div>
+                `;
+                recentSalesContainer.insertAdjacentHTML('beforeend', reactionHtml);
+            }
         }
     })
 }
@@ -151,7 +177,7 @@ Chart.defaults.backgroundColor = '#fffeff';
 Chart.defaults.elements.point.pointStyle = false;
 let delayed, width, height, gradient;
 
-function renderAverageSpeedGraph(driver_data, average_data, indicators) {
+function renderAverageSpeedGraph(driver_data, average_data, indicators, xAxis) {
     const driverData = driver_data.map(item => parseFloat(item.speed));
     const averageData = average_data
     const ctx = document.getElementById('chart2').getContext('2d');
@@ -170,7 +196,7 @@ function renderAverageSpeedGraph(driver_data, average_data, indicators) {
     const chart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: Array.from({ length: driverData.length }, (_, i) => i + 1),
+            labels: xAxis,
             datasets: [
                 {
                     label: 'Your Speed',
@@ -316,15 +342,22 @@ function renderAverageSpeedGraph(driver_data, average_data, indicators) {
     });
 }
 
-function renderAverageSteeringWheelAngleGraph(driver_data, average_data) {
-    const driverData = driver_data.map(item => parseFloat(item.steering));
+function renderAverageSteeringWheelAngleGraph(driver_data, average_data, xAxis) {
+    //for the first and last 6 seconds, set the steering wheel angle to 0
+    startTimestamp = driver_data[0].timestamp;
+    endTimestamp = driver_data[driver_data.length - 1].timestamp;
+    
+    driverData = driver_data.map(item => parseFloat(item.steering));
+    driverData = driverData.map(item => item > 539 ? 0 : item < -539 ? 0 : item);
+    average_data = average_data.map(item => item > 539 ? 0 : item < -539 ? 0 : item);
+    
     const averageData = average_data
     const ctx = document.getElementById('chart').getContext('2d');
 
     const chart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: Array.from({ length: driverData.length }, (_, i) => i + 1),
+            labels: xAxis,
             datasets: [
                 {
                     label: 'Your Steering Wheel Angle',
@@ -450,7 +483,7 @@ function renderAverageSteeringWheelAngleGraph(driver_data, average_data) {
                     ctx.moveTo(x, yAxis.top);
                     ctx.lineTo(x, yAxis.bottom);
                     ctx.lineWidth = 1;
-                    ctx.strokeStyle = 'grey';
+                    ctx.strokeStyle = 'gre,y';
                     ctx.stroke();
                     ctx.restore();
                 }
@@ -471,3 +504,153 @@ function renderAverageSteeringWheelAngleGraph(driver_data, average_data) {
     
 
 }
+
+function renderAverageAccelerationGraph(driver_data, average_data, indicators, xAxis) {
+    //use speed and timestamp from driver data to calculate acceleration
+    const driverData = driver_data.map(item => parseFloat(item.speed));
+    const driverTimestamp = driver_data.map(item => item.timestamp);
+    let driverAcceleration = [];
+    for (let i = 0; i < driverData.length - 1; i++) {
+        driverAcceleration.push((driverData[i + 10] - driverData[i]) / (driverTimestamp[i + 10]/1000 - driverTimestamp[i]/1000));
+    }
+    const averageData = average_data
+    const ctx = document.getElementById('chart3').getContext('2d');
+
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: xAxis,
+            datasets: [
+                {
+                    label: 'Your Speed',
+                    data: driverAcceleration,
+                    backgroundColor: 'rgba(0, 0, 0, 0)',
+                    borderColor: function (context) {
+                        const chart = context.chart;
+                        const { ctx, chartArea } = chart;
+
+                        if (!chartArea) {
+                            // This case happens on initial chart load
+                            return;
+                        }
+                        return getGradient(ctx, chartArea);
+                    },
+                    pointBorderColor: "white",
+                    pointHoverBackgroundColor: "white",
+                    pointRadius: 3,
+                    borderWidth: 2,
+                    pointBackgroundColor: function (context) {
+                        const chart = context.chart;
+                        const { ctx, chartArea } = chart;
+
+                        if (!chartArea) {
+                            // This case happens on initial chart load
+                            return;
+                        }
+                        return getGradient(ctx, chartArea);
+                    },
+                },
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: false,
+                    text: "Sales Count"
+                },
+                tooltip: {
+                    mode: "index",
+                    intersect: false,
+                    backgroundColor: "#fffeff",
+                    titleColor: "#1e2024",
+                    footerColor: "#1e2024",
+                    bodyColor: "#1e2024",
+                    borderColor: "grey",
+                },
+                legend: {
+                    display: false,
+                },
+
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: false,
+                    },
+                    grid: {
+                        display: false,
+                    },
+                    ticks: {
+                        autoSkip: true,
+                        maxTicksLimit: 7
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: false,
+                    },
+                    grid: {
+                        color: "#f0f0f0",
+                    },
+                    ticks: {
+                        callback: function (value) { if (value % 1 === 0) { return value; } }
+                    }
+                }
+            },
+            hoverRadius: 0,
+            animation: {
+                tension: {
+                    duration: 1000,
+                    easing: 'easeInBounce',
+                    from: 0.6,
+                    to: 0.7,
+                    loop: false
+                },
+                onComplete: function () {
+                    delayed = true;
+                },
+                delay: function (context) {
+                    let delay = 0;
+                    if (context.type === 'data' && context.mode === 'default' && !delayed) {
+                        delay = context.dataIndex * 5 + context.datasetIndex * 10;
+                    }
+                    return delay;
+                },
+            },
+            linearGradientLine: true,
+        },
+        plugins: [{
+            afterDraw: chart => {
+                if (chart.tooltip?._active?.length) {
+                    let x = chart.tooltip._active[0].element.x;
+                    let yAxis = chart.scales.y;
+                    let ctx = chart.ctx;
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(x, yAxis.top);
+                    ctx.lineTo(x, yAxis.bottom);
+                    ctx.lineWidth = 1;
+                    ctx.strokeStyle = 'grey';
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            },
+            draw: function () {
+                let ctx = chart.ctx;
+                ctx.save();
+                ctx.shadowColor = 'red';
+                ctx.shadowBlur = 12;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 5;
+                ctx.stroke();
+                draw.apply(this, arguments);
+                ctx.restore();
+            }
+        }],
+    });
+
+}
+
