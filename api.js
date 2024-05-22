@@ -140,6 +140,7 @@ router.post('/get-user-data', async (req, res) => {
 
 async function recalculate_averages() {
     try {
+        console.log(new Date().toLocaleString('en-GB', { timeZone: 'Europe/London' }), ' - Recalculating averages');
         const all_data = await custom_data.findAll();
         //split all data into seperate arrays for each driver
         const data_grouped_by_driver = all_data.reduce((acc, curr) => {
@@ -212,9 +213,10 @@ async function recalculate_averages() {
                     averageArray[i] += arr[i];
                     countArray[i] += 1;
                 }
+                console.log(averageArray[i], countArray[i])
             }
         }
-
+        console.log('step 1')
         //find average steering wheel angle vs time across all drivers
         const steering_data = all_data.map(datapoint => {
             return {
@@ -239,29 +241,30 @@ async function recalculate_averages() {
         for (let arr of Object.values(steering_data_grouped_by_id)) {
             for (let i = 0; i < maxLengthSteering; i++) {
                 if (i < arr.length) {
-                    averageArraySteering[i] += arr[i];
+                    steeringWheelAngle = arr[i];
+                    //steeringWheelAngle is capped between -540 degrees and 540 degrees
+                    if (steeringWheelAngle > 540) {
+                        steeringWheelAngle = 540;
+                    }
+                    if (steeringWheelAngle < -540) {
+                        steeringWheelAngle = -540;
+                    }
+                    averageArraySteering[i] += steeringWheelAngle;
                     countArraySteering[i] += 1;
                 }
+                console.log(steeringWheelAngle, countArraySteering[i])
             }
         }
-
+        console.log('step 2')
         averageArray = averageArray.map((sum, index) => sum / countArray[index]);
         averageArraySteering = averageArraySteering.map((sum, index) => sum / countArraySteering[index]);
         dataToWrite.velocity_data = averageArray;
         dataToWrite.steering_data = averageArraySteering;
         fs.writeFileSync('./averages.json', JSON.stringify(dataToWrite));
         console.log(new Date().toLocaleString('en-GB', { timeZone: 'Europe/London' }), ' - Averages recalculated');
-        return {
-            message: "OK",
-            status: 200
-        }
     }
     catch (err) {
         console.log('error recalculating averages', err);
-        return {
-            message: "Internal Server Error",
-            status: 500
-        }
     }
 }
 
