@@ -128,7 +128,6 @@ function compareWithAverages(steeringActions, brakingActions, driveDuration, ave
             //create array of timestamps changed to seconds to be used in x axis of charts
             const timestamps = allData.map(item => item.timestamp);
             const firstTimestamp = timestamps[0];
-            const lastTimestamp = timestamps[timestamps.length - 1];
             let timeStampsArray = [];
 
             for (let i = 0; i < timestamps.length; i++) {
@@ -136,18 +135,19 @@ function compareWithAverages(steeringActions, brakingActions, driveDuration, ave
             }
 
             renderAverageSpeedGraph(allData, data.data.velocity_data, indicators, timeStampsArray);
-            renderAverageSteeringWheelAngleGraph(allData, data.data.steering_data, timeStampsArray);
+            renderAverageSteeringWheelAngleGraph(allData, data.data.steering_data, indicators, timeStampsArray);
             renderAverageAccelerationGraph(allData, data.data.acceleration_data, indicators, timeStampsArray);
-        
+            renderAverageBrakingGraph(allData, data.data.acceleration_data, indicators, timeStampsArray)
+
             for (const indicator of indicators) {
                 const relevantData = allData.filter(item => item.timestamp > indicator.timestamp);
                 const reactionData = relevantData.filter(item => item.brake > 0 || item.acceleration < 0 || (item.acceleration - relevantData[relevantData.indexOf(item) - 1]?.acceleration < 0))[0];
                 const recentSalesContainer = document.querySelector('.recent-sales-table');
                 const reactionHtml = `
                 <div class="recent-sale">
-                    <div class="recent-sale-shoe">Scenario ${indicators.indexOf(indicator) + 1}</div>
-                    <div style=";gap: 5px; font-size: 12px; display:flex; flex-direction: column" class="info-container">
-                        <div style="color: grey" class="recent-sale-date">${reactionData.timestamp - indicator.timestamp} ms</div>
+                    <div class="recent-sale-shoe">Scenario ${indicators.indexOf(indicator) + 1} at ${(indicator.timestamp - allData[0].timestamp) / 1000}s</div>
+                    <div style=";gap: 5px; font-size: 16px; display:flex; flex-direction: column" class="info-container">
+                        <div class="recent-sale-date recent-sale-shoe">${reactionData.timestamp - indicator.timestamp} ms</div>
                     </div>
                 </div>
                 `;
@@ -179,20 +179,9 @@ let delayed, width, height, gradient;
 
 function renderAverageSpeedGraph(driver_data, average_data, indicators, xAxis) {
     const driverData = driver_data.map(item => parseFloat(item.speed));
-    const averageData = average_data
+    const averageData = average_data;
     const ctx = document.getElementById('chart2').getContext('2d');
-    let data_overlay = indicators.map(item => {
-        return {
-            type: 'bar',
-            x: item.timestamp,
-            y: 10,
-            yMax: 100,
-            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-            borderColor: 'rgba(255, 99, 132, 1)',
-            borderWidth: 1
-        }
-    });
-
+    
     const chart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -206,10 +195,7 @@ function renderAverageSpeedGraph(driver_data, average_data, indicators, xAxis) {
                         const chart = context.chart;
                         const { ctx, chartArea } = chart;
 
-                        if (!chartArea) {
-                            // This case happens on initial chart load
-                            return;
-                        }
+                        if (!chartArea)return;
                         return getGradient(ctx, chartArea);
                     },
                     pointBorderColor: "white",
@@ -220,10 +206,7 @@ function renderAverageSpeedGraph(driver_data, average_data, indicators, xAxis) {
                         const chart = context.chart;
                         const { ctx, chartArea } = chart;
 
-                        if (!chartArea) {
-                            // This case happens on initial chart load
-                            return;
-                        }
+                        if (!chartArea) return;
                         return getGradient(ctx, chartArea);
                     },
                 },
@@ -261,7 +244,23 @@ function renderAverageSpeedGraph(driver_data, average_data, indicators, xAxis) {
                 legend: {
                     display: false,
                 },
-
+                annotation: {
+                    annotations: indicators.map(indicator => {
+                        return {
+                            type: 'line',
+                            mode: 'vertical',
+                            scaleID: 'x',
+                            value: driver_data.filter(item => parseFloat(item.timestamp) < parseFloat(indicator.timestamp)).length,
+                            borderColor: 'red',
+                            borderWidth: 2,
+                            label: {
+                                content: `Scenario at 1`,
+                                enabled: true,
+                                position: 'top'
+                            },
+                        }
+                    })
+                }
             },
             scales: {
                 x: {
@@ -337,12 +336,14 @@ function renderAverageSpeedGraph(driver_data, average_data, indicators, xAxis) {
                 ctx.stroke();
                 draw.apply(this, arguments);
                 ctx.restore();
-            }
+            },
         }],
-    });
+    })
+    
+
 }
 
-function renderAverageSteeringWheelAngleGraph(driver_data, average_data, xAxis) {
+function renderAverageSteeringWheelAngleGraph(driver_data, average_data, indicators, xAxis) {
     //for the first and last 6 seconds, set the steering wheel angle to 0
     startTimestamp = driver_data[0].timestamp;
     endTimestamp = driver_data[driver_data.length - 1].timestamp;
@@ -422,7 +423,23 @@ function renderAverageSteeringWheelAngleGraph(driver_data, average_data, xAxis) 
                 legend: {
                     display: false,
                 },
-
+                annotation: {
+                    annotations: indicators.map(indicator => {
+                        return {
+                            type: 'line',
+                            mode: 'vertical',
+                            scaleID: 'x',
+                            value: driver_data.filter(item => parseFloat(item.timestamp) < parseFloat(indicator.timestamp)).length,
+                            borderColor: 'red',
+                            borderWidth: 2,
+                            label: {
+                                content: `Scenario at 1`,
+                                enabled: true,
+                                position: 'top'
+                            },
+                        }
+                    })
+                }
             },
             scales: {
                 x: {
@@ -572,7 +589,23 @@ function renderAverageAccelerationGraph(driver_data, average_data, indicators, x
                 legend: {
                     display: false,
                 },
-
+                annotation: {
+                    annotations: indicators.map(indicator => {
+                        return {
+                            type: 'line',
+                            mode: 'vertical',
+                            scaleID: 'x',
+                            value: driver_data.filter(item => parseFloat(item.timestamp) < parseFloat(indicator.timestamp)).length,
+                            borderColor: 'red',
+                            borderWidth: 2,
+                            label: {
+                                content: `Scenario at 1`,
+                                enabled: true,
+                                position: 'top'
+                            },
+                        }
+                    })
+                }
             },
             scales: {
                 x: {
@@ -654,3 +687,171 @@ function renderAverageAccelerationGraph(driver_data, average_data, indicators, x
 
 }
 
+function renderAverageBrakingGraph(driver_data, average_data, indicators, xAxis) {
+    const driverData = driver_data.map(item => parseFloat(item.speed));
+    const driverTimestamp = driver_data.map(item => item.timestamp);
+    let driverAcceleration = [];
+    for (let i = 0; i < driverData.length - 1; i++) {
+        driverAcceleration.push((- driverData[i + 10] + driverData[i]) / (driverTimestamp[i + 10] / 1000 - driverTimestamp[i] / 1000));
+    }
+    const averageData = average_data;
+    const ctx = document.getElementById('chart5').getContext('2d');
+
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: xAxis,
+            datasets: [
+                {
+                    label: 'Your Speed',
+                    data: driverData,
+                    backgroundColor: 'rgba(0, 0, 0, 0)',
+                    borderColor: function (context) {
+                        const chart = context.chart;
+                        const { ctx, chartArea } = chart;
+
+                        if (!chartArea) return;
+                        return getGradient(ctx, chartArea);
+                    },
+                    pointBorderColor: "white",
+                    pointHoverBackgroundColor: "white",
+                    pointRadius: 3,
+                    borderWidth: 2,
+                    pointBackgroundColor: function (context) {
+                        const chart = context.chart;
+                        const { ctx, chartArea } = chart;
+
+                        if (!chartArea) return;
+                        return getGradient(ctx, chartArea);
+                    },
+                },
+                {
+                    label: 'Average Speed',
+                    data: averageData,
+                    backgroundColor: 'rgba(0, 0, 0, 0)',
+                    borderColor: 'grey',
+                    pointBorderColor: "white",
+                    pointHoverBackgroundColor: "white",
+                    pointBackgroundColor: 'grey',
+                    pointRadius: 3,
+                    borderWidth: 2,
+                    borderDash: [2, 2],
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: false,
+                    text: "Sales Count"
+                },
+                tooltip: {
+                    mode: "index",
+                    intersect: false,
+                    backgroundColor: "#fffeff",
+                    titleColor: "#1e2024",
+                    footerColor: "#1e2024",
+                    bodyColor: "#1e2024",
+                    borderColor: "grey",
+                },
+                legend: {
+                    display: false,
+                },
+                annotation: {
+                    annotations: indicators.map(indicator => {
+                        return {
+                            type: 'line',
+                            mode: 'vertical',
+                            scaleID: 'x',
+                            value: driver_data.filter(item => parseFloat(item.timestamp) < parseFloat(indicator.timestamp)).length,
+                            borderColor: 'red',
+                            borderWidth: 2,
+                            label: {
+                                content: `Scenario at 1`,
+                                enabled: true,
+                                position: 'top'
+                            },
+                        }
+                    })
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: false,
+                    },
+                    grid: {
+                        display: false,
+                    },
+                    ticks: {
+                        autoSkip: true,
+                        maxTicksLimit: 7
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: false,
+                    },
+                    grid: {
+                        color: "#f0f0f0",
+                    },
+                    ticks: {
+                        callback: function (value) { if (value % 1 === 0) { return value; } }
+                    }
+                }
+            },
+            hoverRadius: 0,
+            animation: {
+                tension: {
+                    duration: 1000,
+                    easing: 'easeInBounce',
+                    from: 0.6,
+                    to: 0.7,
+                    loop: false
+                },
+                onComplete: function () {
+                    delayed = true;
+                },
+                delay: function (context) {
+                    let delay = 0;
+                    if (context.type === 'data' && context.mode === 'default' && !delayed) {
+                        delay = context.dataIndex * 5 + context.datasetIndex * 10;
+                    }
+                    return delay;
+                },
+            },
+            linearGradientLine: true,
+        },
+        plugins: [{
+            afterDraw: chart => {
+                if (chart.tooltip?._active?.length) {
+                    let x = chart.tooltip._active[0].element.x;
+                    let yAxis = chart.scales.y;
+                    let ctx = chart.ctx;
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(x, yAxis.top);
+                    ctx.lineTo(x, yAxis.bottom);
+                    ctx.lineWidth = 1;
+                    ctx.strokeStyle = 'grey';
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            },
+            draw: function () {
+                let ctx = chart.ctx;
+                ctx.save();
+                ctx.shadowColor = 'red';
+                ctx.shadowBlur = 12;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 5;
+                ctx.stroke();
+                draw.apply(this, arguments);
+                ctx.restore();
+            },
+        }],
+    })
+}
