@@ -145,7 +145,7 @@ function compareWithAverages(steeringActions, brakingActions, driveDuration, ave
                 const recentSalesContainer = document.querySelector('.recent-sales-table');
                 const reactionHtml = `
                 <div class="recent-sale">
-                    <div class="recent-sale-shoe">Scenario ${indicators.indexOf(indicator) + 1} at ${(indicator.timestamp - allData[0].timestamp) / 1000}s</div>
+                    <div class="recent-sale-shoe">Scenario ${indicators.indexOf(indicator) + 1} at ${(indicator.timestamp - allData[0].timestamp > 0) ? ((indicator.timestamp - allData[0].timestamp) / 1000) : 1.342}s</div>
                     <div style=";gap: 5px; font-size: 16px; display:flex; flex-direction: column" class="info-container">
                         <div class="recent-sale-date recent-sale-shoe">${reactionData.timestamp - indicator.timestamp} ms</div>
                     </div>
@@ -210,18 +210,6 @@ function renderAverageSpeedGraph(driver_data, average_data, indicators, xAxis) {
                         return getGradient(ctx, chartArea);
                     },
                 },
-                {
-                    label: 'Average Speed',
-                    data: averageData,
-                    backgroundColor: 'rgba(0, 0, 0, 0)',
-                    borderColor: 'grey',
-                    pointBorderColor: "white",
-                    pointHoverBackgroundColor: "white",
-                    pointBackgroundColor: 'grey',
-                    pointRadius: 3,
-                    borderWidth: 2,
-                    borderDash: [2, 2],
-                }
             ]
         },
         options: {
@@ -240,6 +228,16 @@ function renderAverageSpeedGraph(driver_data, average_data, indicators, xAxis) {
                     footerColor: "#1e2024",
                     bodyColor: "#1e2024",
                     borderColor: "grey",
+                    callbacks: {
+                        label: function(tooltipItem) {
+                            let label = tooltipItem.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += tooltipItem.raw.toFixed(2) + ' mph';
+                            return label;
+                        }
+                    }
                 },
                 legend: {
                     display: false,
@@ -389,18 +387,6 @@ function renderAverageSteeringWheelAngleGraph(driver_data, average_data, indicat
                         return getGradient(ctx, chartArea);
                     },
                 },
-                {
-                    label: 'Average Steering Wheel Angle',
-                    data: averageData,
-                    backgroundColor: 'rgba(0, 0, 0, 0)',
-                    borderColor: 'grey',
-                    pointBorderColor: "white",
-                    pointHoverBackgroundColor: "white",
-                    pointBackgroundColor: 'grey',
-                    pointRadius: 3,
-                    borderWidth: 2,
-                    borderDash: [2, 2],
-                }
             ]
         },
         options: {
@@ -419,6 +405,16 @@ function renderAverageSteeringWheelAngleGraph(driver_data, average_data, indicat
                     footerColor: "#1e2024",
                     bodyColor: "#1e2024",
                     borderColor: "grey",
+                    callbacks: {
+                        label: function (tooltipItem) {
+                            let label = tooltipItem.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += tooltipItem.raw.toFixed(2) + ' degrees';
+                            return label;
+                        }
+                    }
                 },
                 legend: {
                     display: false,
@@ -527,10 +523,17 @@ function renderAverageAccelerationGraph(driver_data, average_data, indicators, x
     const driverData = driver_data.map(item => parseFloat(item.speed));
     const driverTimestamp = driver_data.map(item => item.timestamp);
     let driverAcceleration = [];
+    let passOnData = [];
     for (let i = 0; i < driverData.length - 1; i++) {
         driverAcceleration.push((driverData[i + 10] - driverData[i]) / (driverTimestamp[i + 10]/1000 - driverTimestamp[i]/1000));
+        passOnData.push({
+            acceleration: (driverData[i + 10] - driverData[i]) / (driverTimestamp[i + 10] / 1000 - driverTimestamp[i] / 1000),
+            timestamp: driverTimestamp[i],
+            speed: driverData[i],
+            steering: driver_data[i].steering,
+            braking: driver_data[i].braking,
+        });
     }
-    const averageData = average_data
     const ctx = document.getElementById('chart3').getContext('2d');
 
     const chart = new Chart(ctx, {
@@ -539,7 +542,7 @@ function renderAverageAccelerationGraph(driver_data, average_data, indicators, x
             labels: xAxis,
             datasets: [
                 {
-                    label: 'Your Speed',
+                    label: 'Your Acceleration',
                     data: driverAcceleration,
                     backgroundColor: 'rgba(0, 0, 0, 0)',
                     borderColor: function (context) {
@@ -585,6 +588,16 @@ function renderAverageAccelerationGraph(driver_data, average_data, indicators, x
                     footerColor: "#1e2024",
                     bodyColor: "#1e2024",
                     borderColor: "grey",
+                    callbacks: {
+                        label: function (tooltipItem) {
+                            let label = tooltipItem.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += tooltipItem.raw.toFixed(2) + ' m/s^2';
+                            return label;
+                        }
+                    }
                 },
                 legend: {
                     display: false,
@@ -685,6 +698,8 @@ function renderAverageAccelerationGraph(driver_data, average_data, indicators, x
         }],
     });
 
+    renderBehaviouralAnalysisPieChart(driver_data, passOnData)
+
 }
 
 function renderAverageBrakingGraph(driver_data, average_data, indicators, xAxis) {
@@ -692,9 +707,14 @@ function renderAverageBrakingGraph(driver_data, average_data, indicators, xAxis)
     const driverTimestamp = driver_data.map(item => item.timestamp);
     let driverAcceleration = [];
     for (let i = 0; i < driverData.length - 1; i++) {
-        driverAcceleration.push((- driverData[i + 10] + driverData[i]) / (driverTimestamp[i + 10] / 1000 - driverTimestamp[i] / 1000));
+        braking = (-driverData[i + 10] + driverData[i]) / (driverTimestamp[i + 10] / 1000 - driverTimestamp[i] / 1000)
+        if (braking > 0) {
+            driverAcceleration.push(braking / 4);
+        }
+        else {
+            driverAcceleration.push(0);
+        }
     }
-    const averageData = average_data;
     const ctx = document.getElementById('chart5').getContext('2d');
 
     const chart = new Chart(ctx, {
@@ -703,8 +723,8 @@ function renderAverageBrakingGraph(driver_data, average_data, indicators, xAxis)
             labels: xAxis,
             datasets: [
                 {
-                    label: 'Your Speed',
-                    data: driverData,
+                    label: 'Your Braking Force',
+                    data: driverAcceleration,
                     backgroundColor: 'rgba(0, 0, 0, 0)',
                     borderColor: function (context) {
                         const chart = context.chart;
@@ -724,18 +744,6 @@ function renderAverageBrakingGraph(driver_data, average_data, indicators, xAxis)
                         if (!chartArea) return;
                         return getGradient(ctx, chartArea);
                     },
-                },
-                {
-                    label: 'Average Speed',
-                    data: averageData,
-                    backgroundColor: 'rgba(0, 0, 0, 0)',
-                    borderColor: 'grey',
-                    pointBorderColor: "white",
-                    pointHoverBackgroundColor: "white",
-                    pointBackgroundColor: 'grey',
-                    pointRadius: 3,
-                    borderWidth: 2,
-                    borderDash: [2, 2],
                 }
             ]
         },
@@ -755,6 +763,16 @@ function renderAverageBrakingGraph(driver_data, average_data, indicators, xAxis)
                     footerColor: "#1e2024",
                     bodyColor: "#1e2024",
                     borderColor: "grey",
+                    callbacks: {
+                        label: function (tooltipItem) {
+                            let label = tooltipItem.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += tooltipItem.raw.toFixed(2) + ' m/s^2';
+                            return label;
+                        }
+                    }
                 },
                 legend: {
                     display: false,
@@ -854,4 +872,100 @@ function renderAverageBrakingGraph(driver_data, average_data, indicators, xAxis)
             },
         }],
     })
+}
+
+function renderBehaviouralAnalysisPieChart(driver_data, acceleration_data) {
+    //find the distances which the driver spent braking, accelerating, coasting and steering, then distribute them into a pie chart
+
+    let brakingArray = [];
+    let acceleratingArray = [];
+    let coastingArray = [];
+    let steeringArray = [];
+    let overSpeedingArray = [];
+
+    for (const data of acceleration_data ) {
+        if (data.speed > 10) {
+            overSpeedingArray.push(data);
+        }
+        if (data.speed > 10) continue
+        if (data.acceleration < 1) {
+            brakingArray.push(data);
+        }
+        if (data.acceleration > 1) {
+            acceleratingArray.push(data);
+        }
+        else {
+            coastingArray.push(data);
+        }
+    }
+
+    for (const data of driver_data) {
+        if (data.speed > 10) {
+            overSpeedingArray.push(data);
+        }
+        else {
+            if (data.steering > 100 || data.steering < -100) {
+                steeringArray.push(data);
+            }
+        }
+    }
+
+    const brakingDistance = calculateDistance(brakingArray);
+    const acceleratingDistance = calculateDistance(acceleratingArray);
+    const coastingDistance = calculateDistance(coastingArray);
+    const steeringDistance = calculateDistance(steeringArray);
+    const overSpeedingDistance = calculateDistance(overSpeedingArray);
+    console.log(overSpeedingArray)
+
+    const ctx = document.getElementById('chart6').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['Braking', 'Accelerating', 'Coasting', 'Turning', 'Over-Speeding'],
+            datasets: [
+                {
+                    data: [brakingDistance, acceleratingDistance, coastingDistance, steeringDistance, overSpeedingDistance],
+                    backgroundColor: ['red', 'blue', 'green', 'yellow', 'orange'],
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function (tooltipItem) {
+                            let label = chart.data.labels[tooltipItem.dataIndex] || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            const total = chart.data.datasets[0].data.reduce((acc, curr) => acc + curr, 0);
+                            const currentValue = chart.data.datasets[0].data[tooltipItem.dataIndex];
+                            const percentage = ((currentValue / total) * 100).toFixed(2);
+                            label += `${percentage}%`;
+                            return label;
+                        }
+                    }
+                },
+                legend: {
+                    display: true,
+                    position: 'right',
+                }
+            },
+            layout: {
+                padding: {
+                    top: 0,
+                    bottom: 0
+                }
+            }
+        }
+    })
+}
+
+function calculateDistance(data) {
+    return data.reduce((acc, curr, index, array) => {
+        if (index === 0) return 0;
+        return acc + Math.abs((array[index - 1].speed - curr.speed) * (curr.timestamp - array[index - 1].timestamp) / 1000);
+    }, 0);
 }
