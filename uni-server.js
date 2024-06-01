@@ -35,6 +35,7 @@ app.get('/dashboard', (req, res) => {
 })
 
 app.get('/simulator/dashboard', (req, res) => {
+    console.log(new Date().toLocaleString('en-GB', { timeZone: 'Europe/London' }),' new visitor')
     res.sendFile(__dirname + '/simulator/dashboard.html');
 })
 
