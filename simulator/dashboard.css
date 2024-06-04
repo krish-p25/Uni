@@ -952,6 +952,10 @@ body {
     color: red;
 }
 
+.user-sales-graph .percent-sign {
+    opacity: 0;
+}
+
 @keyframes glareAnimation {
     0% {
         background-position: left center;
